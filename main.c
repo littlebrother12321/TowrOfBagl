@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include "raylib.h"
@@ -63,22 +64,36 @@ void DrawEntity(const Entity* entity) {
 #define GROUND_COUNT 28
 #define BOX_COUNT 20
 
+#define COLOR_BOLD "\e[1m"
+#define COLOR_OFF  "\e[m"
 
 int main(int argc, char* argv[]) {
-  printf("Hello world!\n");
-  printf("Now making a window!\n");
+    char *help = "\n"
+        //"      Tower Of Bagel\n"
+        //"\n"
+        "Usage: TowerOfBagel [OPTIONS]..."
+        "\n"
+        COLOR_BOLD "   --wireframe" COLOR_OFF "    Remove filling of boxes\n"
+        COLOR_BOLD "   --debug"     COLOR_OFF "        Add circles for box alignment\n"
+        "\n"
+        "Lovingly made with Raylib and Box2D\n";
 
-  for (int i=0; i<argc; i++) {
-    printf("Arguments: %d, %s\n", argc, argv[i]);
+    for (int i=0; i<argc; i++) {
+    //printf("Arguments: %d, %s\n", argc, argv[i]);
     if (strcmp(argv[i], "--debug") == 0) {
       debug_mode = true;
     }
     if (strcmp(argv[i], "--wireframe") == 0) {
         wireframe = true;
-
+    }
+    if (strcmp(argv[i], "--help") == 0) {
+        printf("%s\n", help);
+        exit(0);
     }
   }
 
+  printf("Hello world!\n");
+  printf("Now making a window!\n");
   printf("Debug mode is: %d!\n", debug_mode);
 
   // Initialize constants and vars
