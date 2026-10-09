@@ -11,6 +11,7 @@
 #include <assert.h>
 
 bool debug_mode = false;
+bool wireframe = false;
 
 typedef struct Entity
 {
@@ -32,23 +33,30 @@ void DrawEntity(const Entity* entity) {
   //DrawTextureEx(entity->texture, ps, RAD2DEG * radians, 1.0f, WHITE);
 
   //DrawRectangle(ps.x, ps.y, entity->texture.width, entity->texture.height, RED);
-  Rectangle rec = {ps.x + 1, ps.y + 1, 2.0f * 24.0f, 2.0f * 24.0f};
-  Rectangle recBack = {ps.x, ps.y, 2.0f * 25.0f, 2.0f * 25.0f};
-  // Draw outline for rectangle
-  DrawRectanglePro(recBack, (Vector2){0, 0}, RAD2DEG * radians, (Color){0,0,0, 255});
+  Rectangle rec = {ps.x, ps.y, 2.0f * 25.0f, 2.0f * 25.0f};
 
-  DrawRectanglePro(rec, (Vector2){0, 0}, RAD2DEG * radians,
+  /* DrawRectanglePro(recBack, (Vector2){0, 0}, RAD2DEG * radians, (Color){0,0,0, 255}); */
+  if (!wireframe) {
+      DrawRectanglePro(rec, (Vector2){0, 0}, RAD2DEG * radians,
                    (Color){255, 0, 0, 255});
+  }
+
+  p = b2Body_GetWorldPoint(entity->bodyId, (b2Vec2){0.0f, 0.0f});
+  ps = (Vector2) { p.x, p.y};
+
+  DrawPolyLinesEx(ps, 4, 37.0f, RAD2DEG * (radians + PI/4), 1, BLACK);
 
   // Draw circles for optional alignment
   if (debug_mode) {
-    DrawCircleV(ps, 5.0f, BLACK);
-    p = b2Body_GetWorldPoint(entity->bodyId, (b2Vec2){0.0f, 0.0f});
-    ps = (Vector2) { p.x, p.y };
-    DrawCircleV(ps, 5.0f, BLUE);
-    p = b2Body_GetWorldPoint(entity->bodyId, (b2Vec2){ entity->extent.x, entity->extent.y});
-    ps = (Vector2) { p.x, p.y };
-    DrawCircleV(ps, 5.0f, RED);
+      p = b2Body_GetWorldPoint(entity->bodyId, (b2Vec2){ -entity->extent.x, -entity->extent.y});
+      ps = (Vector2) { p.x, p.y };
+      DrawCircleV(ps, 5.0f, BLACK);
+      p = b2Body_GetWorldPoint(entity->bodyId, (b2Vec2){0.0f, 0.0f});
+      ps = (Vector2) { p.x, p.y };
+      DrawCircleV(ps, 5.0f, BLUE);
+      p = b2Body_GetWorldPoint(entity->bodyId, (b2Vec2){ entity->extent.x, entity->extent.y});
+      ps = (Vector2) { p.x, p.y };
+      DrawCircleV(ps, 5.0f, RED);
   }
 }
 
@@ -65,14 +73,20 @@ int main(int argc, char* argv[]) {
     if (strcmp(argv[i], "--debug") == 0) {
       debug_mode = true;
     }
+    if (strcmp(argv[i], "--wireframe") == 0) {
+        wireframe = true;
+
+    }
   }
 
   printf("Debug mode is: %d!\n", debug_mode);
 
   // Initialize constants and vars
-  // (raylib) Set screen size
+  // (raylib) Set screen size, but enable dynamic window resizing
   const int screenWidth = 1920;
   const int screenHeight = 1080;
+
+  SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
   // (box2d) Set the time step (60Hz), not to be tied to frame rate
   const float timeStep = 1.0f / 60.0f;
@@ -180,7 +194,7 @@ int main(int argc, char* argv[]) {
     const char* message = "Hello, Box2D!";
     int fontSize = 36;
     int textWidth = MeasureText("Hello, Box2D!", fontSize);
-    DrawText(message, (screenWidth - textWidth) / 2, 50, fontSize, LIGHTGRAY);
+    DrawText(message, 50, 50, fontSize, LIGHTGRAY);
 
     for ( int i = 0; i < GROUND_COUNT; ++i )
       {
