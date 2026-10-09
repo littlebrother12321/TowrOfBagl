@@ -32,7 +32,11 @@ void DrawEntity(const Entity* entity) {
   //DrawTextureEx(entity->texture, ps, RAD2DEG * radians, 1.0f, WHITE);
 
   //DrawRectangle(ps.x, ps.y, entity->texture.width, entity->texture.height, RED);
-  Rectangle rec = {ps.x, ps.y, 2.0f * 50.0f, 2.0f * 50.0f};
+  Rectangle rec = {ps.x + 1, ps.y + 1, 2.0f * 24.0f, 2.0f * 24.0f};
+  Rectangle recBack = {ps.x, ps.y, 2.0f * 25.0f, 2.0f * 25.0f};
+  // Draw outline for rectangle
+  DrawRectanglePro(recBack, (Vector2){0, 0}, RAD2DEG * radians, (Color){0,0,0, 255});
+
   DrawRectanglePro(rec, (Vector2){0, 0}, RAD2DEG * radians,
                    (Color){255, 0, 0, 255});
 
@@ -48,8 +52,8 @@ void DrawEntity(const Entity* entity) {
   }
 }
 
-#define GROUND_COUNT 16
-#define BOX_COUNT 10
+#define GROUND_COUNT 28
+#define BOX_COUNT 20
 
 
 int main(int argc, char* argv[]) {
@@ -102,8 +106,8 @@ int main(int argc, char* argv[]) {
   // Using standard colors now!
   //b2Vec2 groundExtent = { 0.5f * groundTexture.width, 0.5f * groundTexture.height};
   //b2Vec2 boxExtent = {0.5f * boxTexture.width, 0.5f * boxTexture.height};
-  b2Vec2 groundExtent = {50.0f, 50.0f};
-  b2Vec2 boxExtent = {50.0f, 50.0f};
+  b2Vec2 groundExtent = {25.0f, 25.0f};
+  b2Vec2 boxExtent = {25.0f, 25.0f};
 
   b2Polygon groundPolygon = b2MakeBox(groundExtent.x, groundExtent.y);
   b2Polygon boxPolygon = b2MakeBox(boxExtent.x, boxExtent.y);
@@ -114,7 +118,7 @@ int main(int argc, char* argv[]) {
   {
     Entity* entity = groundEntities + i;
     b2BodyDef bodyDef = b2DefaultBodyDef();
-    bodyDef.position = (b2Vec2){ (1.0f * i * 2.0f) * groundExtent.x, screenHeight - groundExtent.y - 100.0f};
+    bodyDef.position = (b2Vec2){ (1.0f * i * 2.0f) * groundExtent.x, screenHeight / 2 - groundExtent.y + 50.0f};
 
     entity->bodyId = b2CreateBody(worldId, &bodyDef);
     entity->extent = groundExtent;
@@ -126,13 +130,13 @@ int main(int argc, char* argv[]) {
 
   Entity boxEntities[BOX_COUNT] = { 0 };
   int boxIndex = 0;
-  for (int i = 0; i < 4; ++i)
+  for (int i = 0; i < 6; ++i)
     {
-      float y = screenHeight - groundExtent.y - 100.0f - (2.5f * i + 2.0f) * boxExtent.y - 20.0f;
+      float y = screenHeight / 2 - groundExtent.y - 50.0f - (2.5f * i + 2.0f) * boxExtent.y - 20.0f;
 
-      for (int j = i; j < 4; ++j)
+      for (int j = i; j < 6; ++j)
         {
-          float x = 0.5f * screenWidth + (3.0f * j - i - 3.0f) * boxExtent.x;
+          float x = 0.25f * screenWidth + (3.0f * j - i - 3.0f) * boxExtent.x;
           assert(boxIndex < BOX_COUNT);
 
           Entity* entity = boxEntities + boxIndex;
