@@ -61,7 +61,7 @@ void DrawEntity(const Entity* entity) {
   }
 }
 
-#define GROUND_COUNT 25
+#define GROUND_COUNT 32
 #define BOX_COUNT 20
 #define WALL_ENTITIES 20
 
@@ -148,6 +148,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < GROUND_COUNT; ++i) {
     Entity* entity = groundEntities + i;
     b2BodyDef bodyDef = b2DefaultBodyDef();
+    bodyDef.type = b2_staticBody;
     bodyDef.position = (b2Vec2){ ( i * 2.0f ) * groundExtent.x - groundExtent.x + 25, (float)GetScreenHeight() - groundExtent.y - 50.0f};
 
     entity->bodyId = b2CreateBody(worldId, &bodyDef);
@@ -159,12 +160,28 @@ int main(int argc, char* argv[]) {
   }
 
 
-  Entity wallEntities[WALL_ENTITIES] = { 0 };
+  Entity lWallEntities[WALL_ENTITIES] = { 0 };
   for(int i = 0; i < WALL_ENTITIES; i++) {
-      Entity* entity = wallEntities + i;
+      Entity* entity = lWallEntities + i;
       b2BodyDef bodyDef = b2DefaultBodyDef();
+      bodyDef.type = b2_staticBody;
       //bodyDef.position = (b2Vec2){ screenWidth * 0.5f + groundExtent.x + 15, (i * 2.0f) * groundExtent.y + 55 };
       bodyDef.position = (b2Vec2) { 0 * groundExtent.x, (i * 2.0f) * groundExtent.y + 55 };
+
+      entity->bodyId = b2CreateBody(worldId, &bodyDef);
+      entity->extent = groundExtent;
+      entity->texture = groundTexture;
+      b2ShapeDef shapeDef = b2DefaultShapeDef();
+      b2CreatePolygonShape(entity->bodyId, &shapeDef, &groundPolygon);
+  }
+
+  Entity rWallEntities[WALL_ENTITIES] = { 0 };
+  for(int i = 0; i < WALL_ENTITIES; i++) {
+      Entity* entity = rWallEntities + i;
+      b2BodyDef bodyDef = b2DefaultBodyDef();
+      bodyDef.type = b2_staticBody;
+      //bodyDef.position = (b2Vec2){ screenWidth * 0.5f + groundExtent.x + 15, (i * 2.0f) * groundExtent.y + 55 };
+      bodyDef.position = (b2Vec2) { (float)GetScreenWidth(), (i * 2.0f) * groundExtent.y + 55 };
 
       entity->bodyId = b2CreateBody(worldId, &bodyDef);
       entity->extent = groundExtent;
@@ -243,7 +260,8 @@ int main(int argc, char* argv[]) {
       }
 
     for (int i = 0; i < WALL_ENTITIES; ++i) {
-        DrawEntity( wallEntities + i );
+        DrawEntity(lWallEntities + i);
+        DrawEntity(rWallEntities + i);
 
       }
 
