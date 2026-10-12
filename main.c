@@ -61,8 +61,9 @@ void DrawEntity(const Entity* entity) {
   }
 }
 
-#define GROUND_COUNT 28
+#define GROUND_COUNT 25
 #define BOX_COUNT 20
+#define WALL_ENTITIES 20
 
 #define COLOR_BOLD "\e[1m"
 #define COLOR_OFF  "\e[m"
@@ -98,8 +99,8 @@ int main(int argc, char* argv[]) {
 
   // Initialize constants and vars
   // (raylib) Set screen size, but enable dynamic window resizing
-  const int screenWidth = 1920;
-  const int screenHeight = 1080;
+  const int defaultScreenWidth = 1920;
+  const int defaultScreenHeight = 1080;
 
   SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 
@@ -115,9 +116,9 @@ int main(int argc, char* argv[]) {
   b2SetLengthUnitsPerMeter(lengthUnitsPerMeter);
 
   // (raylib) Initialize window with GLFW (auto)
-  InitWindow(screenWidth, screenHeight, "Tower of bagel (box2d)");
+  InitWindow(defaultScreenWidth, defaultScreenHeight, "Tower of bagel (box2d)");
 
-  // (raylib) Set FPS cap in frames per second
+  //(raylib) Set FPS cap in frames per second
   SetTargetFPS(60);
 
 
@@ -140,14 +141,14 @@ int main(int argc, char* argv[]) {
 
   b2Polygon groundPolygon = b2MakeBox(groundExtent.x, groundExtent.y);
   b2Polygon boxPolygon = b2MakeBox(boxExtent.x, boxExtent.y);
+  b2Circle circleShape;
 
   // (box2d) Create an arbitrary dynamic box (physics object) to interact with the ground
   Entity groundEntities[GROUND_COUNT] = { 0 };
-  for (int i = 0; i < GROUND_COUNT; ++i)
-  {
+  for (int i = 0; i < GROUND_COUNT; ++i) {
     Entity* entity = groundEntities + i;
     b2BodyDef bodyDef = b2DefaultBodyDef();
-    bodyDef.position = (b2Vec2){ (1.0f * i * 2.0f) * groundExtent.x, screenHeight / 2 - groundExtent.y + 50.0f};
+    bodyDef.position = (b2Vec2){ ( i * 2.0f ) * groundExtent.x - groundExtent.x + 25, (float)GetScreenHeight() - groundExtent.y - 50.0f};
 
     entity->bodyId = b2CreateBody(worldId, &bodyDef);
     entity->extent = groundExtent;
@@ -157,15 +158,30 @@ int main(int argc, char* argv[]) {
     b2CreatePolygonShape(entity->bodyId, &shapeDef, &groundPolygon);
   }
 
+
+  Entity wallEntities[WALL_ENTITIES] = { 0 };
+  for(int i = 0; i < WALL_ENTITIES; i++) {
+      Entity* entity = wallEntities + i;
+      b2BodyDef bodyDef = b2DefaultBodyDef();
+      //bodyDef.position = (b2Vec2){ screenWidth * 0.5f + groundExtent.x + 15, (i * 2.0f) * groundExtent.y + 55 };
+      bodyDef.position = (b2Vec2) { 0 * groundExtent.x, (i * 2.0f) * groundExtent.y + 55 };
+
+      entity->bodyId = b2CreateBody(worldId, &bodyDef);
+      entity->extent = groundExtent;
+      entity->texture = groundTexture;
+      b2ShapeDef shapeDef = b2DefaultShapeDef();
+      b2CreatePolygonShape(entity->bodyId, &shapeDef, &groundPolygon);
+  }
+
   Entity boxEntities[BOX_COUNT] = { 0 };
   int boxIndex = 0;
-  for (int i = 0; i < 6; ++i)
-    {
-      float y = screenHeight / 2 - groundExtent.y - 50.0f - (2.5f * i + 2.0f) * boxExtent.y - 20.0f;
+  for (int i = 0; i < 6; ++i) {
+      float y = (float)GetScreenHeight() * 0.5f - groundExtent.y - 50.0f - (2.5f * i + 2.0f) * boxExtent.y - 20.0f;
+      //float y = (float)GetScreenHeight() * 0.5f - (2.5f * i + 2.0f) * boxExtent.y;
 
-      for (int j = i; j < 6; ++j)
-        {
-          float x = 0.25f * screenWidth + (3.0f * j - i - 3.0f) * boxExtent.x;
+      for (int j = i; j < 6; ++j) {
+          float x = 0.25f * (float)GetScreenHeight() + (3.0f * j - i - 3.0f) * boxExtent.x;
+          //float x = j * boxExtent.x + (float)GetScreenWidth() * 0.25f;
           assert(boxIndex < BOX_COUNT);
 
           Entity* entity = boxEntities + boxIndex;
@@ -176,7 +192,15 @@ int main(int argc, char* argv[]) {
           entity->texture = boxTexture;
           entity->extent = boxExtent;
           b2ShapeDef shapeDef = b2DefaultShapeDef();
-          b2CreatePolygonShape(entity->bodyId, &shapeDef, &boxPolygon);
+
+
+          // ball?
+          // b2CreatePolygonShape(entity->bodyId, &shapeDef, &boxPolygon);
+          b2Circle circle = { .center = (b2Vec2){0, 0},  .radius = 25.0f};
+
+          //circleShape.center = (b2Vec2){x, y};
+          //circleShape.radius = 25.0f;
+          b2CreateCircleShape(entity->bodyId, &shapeDef, &circle);
 
           boxIndex += 1;
         }
@@ -188,13 +212,16 @@ int main(int argc, char* argv[]) {
   // -----------------------------------------
   while (!WindowShouldClose()) {
     // Pause logic
-    if (IsKeyPressed(KEY_P))
-      {
+      if (IsKeyPressed(KEY_P)) {
         pause = !pause;
       }
 
-    if (pause == false)
-      {
+      if (IsKeyPressed(KEY_A)) {
+          printf("Screen Width:   %0.1f\n", (float)GetScreenWidth());
+          printf("Screen Height: %0.1f\n", (float)GetScreenHeight());
+      }
+
+      if (pause == false) {
         float deltaTime = GetFrameTime();
         b2World_Step(worldId, deltaTime, 4);
       }
@@ -211,14 +238,17 @@ int main(int argc, char* argv[]) {
     int textWidth = MeasureText("Hello, Box2D!", fontSize);
     DrawText(message, 50, 50, fontSize, LIGHTGRAY);
 
-    for ( int i = 0; i < GROUND_COUNT; ++i )
-      {
-        DrawEntity(groundEntities + i);
+    for (int i = 0; i < GROUND_COUNT; ++i) {
+        DrawEntity( groundEntities + i );
       }
 
-    for ( int i = 0; i < BOX_COUNT; ++i )
-      {
-        DrawEntity(boxEntities + i);
+    for (int i = 0; i < WALL_ENTITIES; ++i) {
+        DrawEntity( wallEntities + i );
+
+      }
+
+    for (int i = 0; i < BOX_COUNT; ++i) {
+        DrawEntity( boxEntities + i );
       }
 
 
